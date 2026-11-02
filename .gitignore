@@ -1,0 +1,16 @@
+# Environment variables and API keys
+.env
+
+# Python cache files
+__pycache__/
+*.pyc
+
+# Virtual environments
+venv/
+.venv/
+
+# Database
+*.db
+
+# IDE settings
+.vscode/

@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Product Comparison | NutriScan AI</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f5f8f5;
+            color: #26372b;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 7%;
+            background: white;
+        }
+
+        .logo {
+            font-size: 25px;
+            font-weight: bold;
+            color: #23834a;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #333;
+            margin-left: 25px;
+        }
+
+        .container {
+            padding: 45px 8%;
+        }
+
+        .heading {
+            margin-bottom: 30px;
+        }
+
+        .heading h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .heading p {
+            color: #718075;
+        }
+
+        .selection-box {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .selection-box h2 {
+            margin-bottom: 20px;
+        }
+
+        .select-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        select {
+            width: 100%;
+            padding: 13px;
+            border: 1px solid #dce4dd;
+            border-radius: 7px;
+            background: white;
+            font-size: 15px;
+        }
+
+        button {
+            margin-top: 25px;
+            padding: 13px 25px;
+            border: none;
+            background: #23834a;
+            color: white;
+            border-radius: 7px;
+            font-weight: bold;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #196b39;
+        }
+
+        .message {
+            background: #fff2d5;
+            color: #946a13;
+            padding: 15px;
+            border-radius: 7px;
+            margin-bottom: 20px;
+        }
+
+        .result {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+
+        .result h2 {
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 17px;
+            text-align: center;
+            border-bottom: 1px solid #edf0ed;
+        }
+
+        th {
+            background: #e8f5eb;
+            color: #23834a;
+        }
+
+        td:first-child {
+            font-weight: bold;
+            text-align: left;
+        }
+
+        .winner {
+            background: #e8f5eb;
+            padding: 22px;
+            border-radius: 10px;
+            color: #23834a;
+            margin-top: 25px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .back {
+            display: inline-block;
+            margin-top: 20px;
+            color: #23834a;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .empty {
+            background: white;
+            padding: 35px;
+            border-radius: 12px;
+            text-align: center;
+            color: #718075;
+        }
+
+        @media(max-width: 700px) {
+
+            .select-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 30px 5%;
+            }
+
+            table {
+                font-size: 13px;
+            }
+
+            th, td {
+                padding: 10px 5px;
+            }
+
+            nav a {
+                margin-left: 10px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <nav>
+
+        <div class="logo">NutriScan AI</div>
+
+        <div>
+            <a href="/">Home</a>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/scan">Scan</a>
+        </div>
+
+    </nav>
+
+
+    <div class="container">
+
+        <div class="heading">
+
+            <h1>Compare Food Products</h1>
+
+            <p>
+                Compare the nutritional values of two scanned products.
+            </p>
+
+        </div>
+
+
+        {% if products|length < 2 %}
+
+            <div class="empty">
+
+                <h2>Not Enough Products</h2>
+
+                <p>
+                    You need at least two scanned products to compare them.
+                </p>
+
+                <br>
+
+                <a href="/scan" class="back">
+                    Scan More Products →
+                </a>
+
+            </div>
+
+        {% else %}
+
+
+            <div class="selection-box">
+
+                <h2>Select Products</h2>
+
+                {% if message %}
+
+                    <div class="message">
+                        {{ message }}
+                    </div>
+
+                {% endif %}
+
+                <form method="POST" action="/compare">
+
+                    <div class="select-grid">
+
+                        <div>
+
+                            <label for="product_a">
+                                Product A
+                            </label>
+
+                            <select name="product_a" id="product_a" required>
+
+                                <option value="">Select Product A</option>
+
+                                {% for product in products %}
+
+                                    <option value="{{ product['id'] }}"
+                                        {% if request.form.get('product_a') == product['id']|string %}selected{% endif %}>
+
+                                        {{ product['name'] }}
+                                        ({{ product['scanned_at'] }})
+
+                                    </option>
+
+                                {% endfor %}
+
+                            </select>
+
+                        </div>
+
+
+                        <div>
+
+                            <label for="product_b">
+                                Product B
+                            </label>
+
+                            <select name="product_b" id="product_b" required>
+
+                                <option value="">Select Product B</option>
+
+                                {% for product in products %}
+
+                                    <option value="{{ product['id'] }}"
+                                        {% if request.form.get('product_b') == product['id']|string %}selected{% endif %}>
+
+                                        {{ product['name'] }}
+                                        ({{ product['scanned_at'] }})
+
+                                    </option>
+
+                                {% endfor %}
+
+                            </select>
+
+                        </div>
+
+                    </div>
+
+                    <button type="submit">
+                        Compare Products
+                    </button>
+
+                </form>
+
+            </div>
+
+
+            {% if product_a and product_b %}
+
+                <div class="result">
+
+                    <h2>Nutrition Comparison</h2>
+
+                    <table>
+
+                        <tr>
+
+                            <th>Nutrition</th>
+
+                            <th>{{ product_a['name'] }}</th>
+
+                            <th>{{ product_b['name'] }}</th>
+
+                        </tr>
+
+                        <tr>
+                            <td>Calories</td>
+                            <td>{{ product_a['calories'] }}</td>
+                            <td>{{ product_b['calories'] }}</td>
+                        </tr>
+
+                        <tr>
+                            <td>Protein</td>
+                            <td>{{ product_a['protein'] }}</td>
+                            <td>{{ product_b['protein'] }}</td>
+                        </tr>
+
+                        <tr>
+                            <td>Carbohydrates</td>
+                            <td>{{ product_a['carbs'] }}</td>
+                            <td>{{ product_b['carbs'] }}</td>
+                        </tr>
+
+                        <tr>
+                            <td>Fat</td>
+                            <td>{{ product_a['fat'] }}</td>
+                            <td>{{ product_b['fat'] }}</td>
+                        </tr>
+
+                        <tr>
+                            <td>Sugar</td>
+                            <td>{{ product_a['sugar'] }}</td>
+                            <td>{{ product_b['sugar'] }}</td>
+                        </tr>
+
+                        <tr>
+                            <td>Fibre</td>
+                            <td>{{ product_a['fibre'] }}</td>
+                            <td>{{ product_b['fibre'] }}</td>
+                        </tr>
+
+                        <tr>
+                            <td>Saturated Fat</td>
+                            <td>{{ product_a['saturated_fat'] }}</td>
+                            <td>{{ product_b['saturated_fat'] }}</td>
+                        </tr>
+
+                        <tr>
+                            <td>Sodium</td>
+                            <td>{{ product_a['sodium'] }}</td>
+                            <td>{{ product_b['sodium'] }}</td>
+                        </tr>
+
+                        <tr>
+                            <td>Nutrition Score</td>
+                            <td>
+                                {% if product_a['score'] is not none %}
+                                    {{ product_a['score'] }}/10
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                {% if product_b['score'] is not none %}
+                                    {{ product_b['score'] }}/10
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                        </tr>
+
+                    </table>
+
+
+                    <div class="winner">
+
+                        {% if winner == "It's a tie!" %}
+
+                            Both products have the same nutrition score.
+
+                        {% elif winner in [product_a['name'], product_b['name']] %}
+
+                            Better nutrition score: {{ winner }}
+
+                        {% else %}
+
+                            {{ winner }}
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            {% endif %}
+
+        {% endif %}
+
+
+        <a href="/dashboard" class="back">
+            ← Back to Dashboard
+        </a>
+
+    </div>
+
+</body>
+
+</html>

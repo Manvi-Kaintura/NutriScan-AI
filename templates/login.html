@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Login | NutriScan AI</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f5f8f5;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #26372b;
+        }
+
+        .container {
+            background: white;
+            width: 100%;
+            max-width: 420px;
+            padding: 40px;
+            border-radius: 14px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+        .logo {
+            color: #23834a;
+            font-size: 26px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            font-size: 27px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #718075;
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 13px;
+            border: 1px solid #dce4dd;
+            border-radius: 7px;
+            margin-bottom: 20px;
+            font-size: 15px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #23834a;
+            color: white;
+            border: none;
+            border-radius: 7px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #196b39;
+        }
+
+        .bottom {
+            text-align: center;
+            margin-top: 22px;
+            color: #718075;
+        }
+
+        a {
+            color: #23834a;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .message {
+            background: #fde5e4;
+            color: #d9534f;
+            padding: 12px;
+            border-radius: 7px;
+            margin-bottom: 18px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        <div class="logo">NutriScan AI</div>
+
+        <h1>Welcome Back</h1>
+
+        <p class="subtitle">
+            Login to access your nutrition dashboard.
+        </p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="message">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+
+        <form method="POST">
+
+            <label>Email Address</label>
+
+            <input
+                type="email"
+                name="email"
+                placeholder="Enter your email"
+                required
+            >
+
+            <label>Password</label>
+
+            <input
+                type="password"
+                name="password"
+                placeholder="Enter your password"
+                required
+            >
+
+            <button type="submit">
+                Login
+            </button>
+
+        </form>
+
+        <div class="bottom">
+
+            Don't have an account?
+            <a href="/register">Create Account</a>
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>

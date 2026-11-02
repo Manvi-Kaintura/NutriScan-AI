@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Scan History | NutriScan AI</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f5f8f5;
+            color: #26372b;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 7%;
+            background: white;
+        }
+
+        .logo {
+            font-size: 25px;
+            font-weight: bold;
+            color: #23834a;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #333;
+            margin-left: 25px;
+        }
+
+        .container {
+            padding: 45px 8%;
+        }
+
+        .heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            gap: 15px;
+        }
+
+        .heading h1 {
+            margin-bottom: 8px;
+        }
+
+        .heading p {
+            color: #718075;
+        }
+
+        .history-box {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 650px;
+        }
+
+        th, td {
+            padding: 17px 12px;
+            text-align: left;
+            border-bottom: 1px solid #edf0ed;
+        }
+
+        th {
+            background: #e8f5eb;
+            color: #23834a;
+        }
+
+        .score {
+            font-weight: bold;
+            padding: 7px 12px;
+            border-radius: 6px;
+            display: inline-block;
+        }
+
+        .healthy {
+            background: #e0f3e5;
+            color: #23834a;
+        }
+
+        .moderate {
+            background: #fff2d5;
+            color: #b78016;
+        }
+
+        .unhealthy {
+            background: #fde5e4;
+            color: #d9534f;
+        }
+
+        .no-score {
+            background: #eeeeee;
+            color: #777;
+        }
+
+        .delete-btn {
+            background: #fde5e4;
+            color: #d9534f;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .delete-btn:hover {
+            background: #f8cccc;
+        }
+
+        .clear-btn {
+            background: #d9534f;
+            color: white;
+            border: none;
+            padding: 12px 18px;
+            border-radius: 7px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .clear-btn:hover {
+            background: #bd3935;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 50px 20px;
+            color: #89958b;
+        }
+
+        .back {
+            display: inline-block;
+            margin-top: 25px;
+            color: #23834a;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        @media(max-width: 700px) {
+
+            .container {
+                padding: 30px 5%;
+            }
+
+            .heading {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            nav a {
+                margin-left: 10px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <nav>
+
+        <div class="logo">NutriScan AI</div>
+
+        <div>
+            <a href="/">Home</a>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/compare">Compare</a>
+        </div>
+
+    </nav>
+
+
+    <div class="container">
+
+        <div class="heading">
+
+            <div>
+
+                <h1>Scan History</h1>
+
+                <p>
+                    View all your previously scanned food products.
+                </p>
+
+            </div>
+
+            {% if scans %}
+
+                <form action="/clear_history" method="POST"
+                    onsubmit="return confirm('Are you sure you want to delete all scan history?');">
+
+                    <button type="submit" class="clear-btn">
+                        Clear All History
+                    </button>
+
+                </form>
+
+            {% endif %}
+
+        </div>
+
+
+        <div class="history-box">
+
+            {% if scans %}
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+                            <th>Product</th>
+                            <th>Brand</th>
+                            <th>Calories</th>
+                            <th>Score</th>
+                            <th>Date & Time</th>
+                            <th>Action</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for scan in scans %}
+
+                            <tr>
+
+                                <td>{{ scan['name'] }}</td>
+
+                                <td>{{ scan['brand'] }}</td>
+
+                                <td>{{ scan['calories'] }}</td>
+
+                                <td>
+
+                                    {% if scan['score'] is not none %}
+
+                                        {% if scan['score'] >= 7 %}
+
+                                            <span class="score healthy">
+                                                {{ scan['score'] }}/10
+                                            </span>
+
+                                        {% elif scan['score'] >= 5 %}
+
+                                            <span class="score moderate">
+                                                {{ scan['score'] }}/10
+                                            </span>
+
+                                        {% else %}
+
+                                            <span class="score unhealthy">
+                                                {{ scan['score'] }}/10
+                                            </span>
+
+                                        {% endif %}
+
+                                    {% else %}
+
+                                        <span class="score no-score">
+                                            N/A
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+                                <td>{{ scan['scanned_at'] }}</td>
+
+                                <td>
+
+                                    <form
+                                        action="{{ url_for('delete_scan', scan_id=scan['id']) }}"
+                                        method="POST"
+                                        onsubmit="return confirm('Delete this scan?');">
+
+                                        <button type="submit" class="delete-btn">
+                                            Delete
+                                        </button>
+
+                                    </form>
+
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            {% else %}
+
+                <div class="empty">
+
+                    <h2>No Scan History Yet</h2>
+
+                    <p>Start scanning products to build your history.</p>
+
+                    <br>
+
+                    <a href="/scan" class="back">
+                        Scan a Product →
+                    </a>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+
+        <a href="/dashboard" class="back">
+            ← Back to Dashboard
+        </a>
+
+    </div>
+
+</body>
+
+</html>

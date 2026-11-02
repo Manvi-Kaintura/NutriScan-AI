@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>NutriScan AI - Scan Product</title>
+
+    <!-- External Libraries -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f4f7f5;
+            color: #26332b;
+            padding: 25px;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #66736a;
+            margin-bottom: 25px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            margin-bottom: 22px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        h2 {
+            margin-bottom: 18px;
+            font-size: 21px;
+        }
+
+        h3 {
+            margin-bottom: 12px;
+        }
+
+        button {
+            background: #23834c;
+            color: white;
+            border: none;
+            padding: 11px 18px;
+            border-radius: 7px;
+            cursor: pointer;
+            margin: 5px 3px;
+        }
+
+        button:hover {
+            background: #17683a;
+        }
+
+        button:disabled {
+            background: #999;
+            cursor: not-allowed;
+        }
+
+        input {
+            padding: 11px;
+            border: 1px solid #ccc;
+            border-radius: 7px;
+            margin: 7px 0;
+            width: 100%;
+        }
+
+        .scan-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 20px;
+        }
+
+        .scan-method {
+            padding: 18px;
+            background: #f7faf7;
+            border-radius: 9px;
+        }
+
+        #reader {
+            width: 100%;
+            max-width: 450px;
+            margin: 15px auto;
+        }
+
+        #reader video {
+            width: 100% !important;
+            object-fit: cover;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .status {
+            margin-top: 12px;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .product-name {
+            color: #23834c;
+            margin-bottom: 8px;
+        }
+
+        .nutrition-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .nutrition-item {
+            background: #f1f7f2;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .nutrition-item strong {
+            display: block;
+            font-size: 21px;
+            margin-bottom: 5px;
+        }
+
+        .nutrition-item span {
+            color: #66736a;
+            font-size: 13px;
+        }
+
+        .score {
+            font-size: 38px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .healthy {
+            color: #23834c;
+        }
+
+        .moderate {
+            color: #d69b18;
+        }
+
+        .unhealthy {
+            color: #d94343;
+        }
+
+        .score-message {
+            color: #66736a;
+        }
+
+        .chart-container {
+            max-width: 420px;
+            margin: 20px auto 0;
+        }
+
+        .message {
+            color: #66736a;
+            line-height: 1.6;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #23834c;
+            text-decoration: none;
+        }
+
+        @media (max-width: 600px) {
+
+            body {
+                padding: 12px;
+            }
+
+            .card {
+                padding: 17px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <a href="/dashboard" class="back-link">← Back to Dashboard</a>
+
+    <h1>NutriScan AI</h1>
+
+    <p class="subtitle">
+        Scan a food product to understand its nutritional value.
+    </p>
+
+
+    <!-- SCANNING METHODS -->
+
+    <div class="card">
+
+        <h2>Scan a Food Product</h2>
+
+        <div class="scan-options">
+
+
+            <!-- CAMERA SCANNER -->
+
+            <div class="scan-method">
+
+                <h3>1. Live Camera Scan</h3>
+
+                <p class="message">
+                    Use your camera to scan a product barcode.
+                </p>
+
+                <button onclick="startCamera()">
+                    Start Camera
+                </button>
+
+                <button onclick="stopCamera()">
+                    Stop Camera
+                </button>
+
+                <div id="reader"></div>
+
+                <p id="cameraStatus" class="status"></p>
+
+            </div>
+
+
+            <!-- IMAGE UPLOAD -->
+
+            <div class="scan-method">
+
+                <h3>2. Upload Barcode Image</h3>
+
+                <p class="message">
+                    Upload a clear picture of the barcode.
+                </p>
+
+                <input
+                    type="file"
+                    id="barcodeImage"
+                    accept="image/*"
+                >
+
+                <button onclick="scanImage()">
+                    Scan Image
+                </button>
+
+                <p id="imageStatus" class="status"></p>
+
+            </div>
+
+
+            <!-- MANUAL ENTRY -->
+
+            <div class="scan-method">
+
+                <h3>3. Enter Barcode Manually</h3>
+
+                <p class="message">
+                    Type the barcode number printed on the product.
+                </p>
+
+                <input
+                    type="text"
+                    id="manualBarcode"
+                    placeholder="Enter barcode number"
+                >
+
+                <button onclick="manualScan()">
+                    Search Product
+                </button>
+
+            </div>
+
+        </div>
+
+        <p id="mainStatus" class="status"></p>
+
+    </div>
+
+
+    <!-- PRODUCT INFORMATION -->
+
+    <div class="card hidden" id="productCard">
+
+        <h2>Product Information</h2>
+
+        <h3 class="product-name" id="productName"></h3>
+
+        <p>
+            <strong>Brand:</strong>
+            <span id="productBrand"></span>
+        </p>
+
+        <p>
+            <strong>Barcode:</strong>
+            <span id="productBarcode"></span>
+        </p>
+
+        <div class="nutrition-grid">
+
+            <div class="nutrition-item">
+                <strong id="calories">-</strong>
+                <span>Calories (kcal)</span>
+            </div>
+
+            <div class="nutrition-item">
+                <strong id="protein">-</strong>
+                <span>Protein (g)</span>
+            </div>
+
+            <div class="nutrition-item">
+                <strong id="carbs">-</strong>
+                <span>Carbohydrates (g)</span>
+            </div>
+
+            <div class="nutrition-item">
+                <strong id="fat">-</strong>
+                <span>Total Fat (g)</span>
+            </div>
+
+            <div class="nutrition-item">
+                <strong id="fibre">-</strong>
+                <span>Fibre (g)</span>
+            </div>
+
+            <div class="nutrition-item">
+                <strong id="sugar">-</strong>
+                <span>Sugar (g)</span>
+            </div>
+
+            <div class="nutrition-item">
+                <strong id="saturatedFat">-</strong>
+                <span>Saturated Fat (g)</span>
+            </div>
+
+            <div class="nutrition-item">
+                <strong id="sodium">-</strong>
+                <span>Sodium</span>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- NUTRITION SCORE -->
+
+    <div class="card hidden" id="scoreCard">
+
+        <h2>Nutrition Score</h2>
+
+        <div class="score" id="scoreValue"></div>
+
+        <h3 id="scoreCategory"></h3>
+
+        <p class="score-message" id="scoreMessage"></p>
+
+        <p class="message">
+            Note: This score is an educational estimate based on available
+            nutritional information. It is not a medically validated rating.
+        </p>
+
+    </div>
+
+
+    <!-- MACRONUTRIENT CHART -->
+
+    <div class="card hidden" id="chartCard">
+
+        <h2>Macronutrient Breakdown</h2>
+
+        <div class="chart-container">
+
+            <canvas id="nutritionChart"></canvas>
+
+        </div>
+
+    </div>
+
+
+    <!-- GEMINI AI SUMMARY -->
+
+    <div class="card hidden" id="summaryCard">
+
+        <h2>AI Nutritional Analysis</h2>
+
+        <p class="message" id="summaryStatus">
+            Generating AI analysis...
+        </p>
+
+        <div id="summaryContent"></div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    let html5QrCode = null;
+
+    let nutritionChart = null;
+
+    let isCameraRunning = false;
+
+
+    // DISPLAY A VALUE
+
+    function displayValue(value) {
+
+        if (value === null || value === undefined || value === "") {
+            return "Not available";
+        }
+
+        return value;
+
+    }
+
+
+    // MANUAL BARCODE SCAN
+
+    function manualScan() {
+
+        const barcode = document
+            .getElementById("manualBarcode")
+            .value.trim();
+
+        if (!barcode) {
+
+            alert("Please enter a barcode number.");
+
+            return;
+
+        }
+
+        fetchProduct(barcode);
+
+    }
+
+
+    // START CAMERA SCANNER
+
+    async function startCamera() {
+
+        if (isCameraRunning) {
+            return;
+        }
+
+        document.getElementById("cameraStatus").textContent =
+            "Starting camera...";
+
+        try {
+
+            html5QrCode = new Html5Qrcode("reader", {
+
+                formatsToSupport: [
+
+                    Html5QrcodeSupportedFormats.EAN_13,
+
+                    Html5QrcodeSupportedFormats.EAN_8,
+
+                    Html5QrcodeSupportedFormats.UPC_A,
+
+                    Html5QrcodeSupportedFormats.UPC_E
+
+                ]
+
+            });
+
+
+            await html5QrCode.start(
+
+                { facingMode: "environment" },
+
+                {
+
+                    fps: 15,
+
+                    qrbox: {
+
+                        width: 300,
+
+                        height: 120
+
+                    },
+
+                    aspectRatio: 1.777778
+
+                },
+
+
+                async function(decodedText) {
+
+                    document.getElementById("cameraStatus").textContent =
+                        "Barcode detected: " + decodedText;
+
+                    await stopCamera();
+
+                    fetchProduct(decodedText);
+
+                },
+
+
+                function(errorMessage) {
+
+                    // Ignore continuous scanning errors.
+
+                }
+
+            );
+
+
+            isCameraRunning = true;
+
+            document.getElementById("cameraStatus").textContent =
+                "Camera is running. Align the barcode inside the scanning area.";
+
+        }
+
+
+        catch (error) {
+
+            document.getElementById("cameraStatus").textContent =
+                "Unable to access camera. Check camera permissions.";
+
+            console.error("Camera Error:", error);
+
+        }
+
+    }
+
+
+    // STOP CAMERA SCANNER
+
+    async function stopCamera() {
+
+        if (html5QrCode && isCameraRunning) {
+
+            try {
+
+                await html5QrCode.stop();
+
+                await html5QrCode.clear();
+
+            }
+
+            catch (error) {
+
+                console.log(error);
+
+            }
+
+            isCameraRunning = false;
+
+        }
+
+    }
+
+
+    // SCAN BARCODE IMAGE
+
+    async function scanImage() {
+
+        const fileInput = document.getElementById("barcodeImage");
+
+        if (!fileInput.files.length) {
+
+            alert("Please select a barcode image.");
+
+            return;
+
+        }
+
+        const file = fileInput.files[0];
+
+        document.getElementById("imageStatus").textContent =
+            "Scanning image...";
+
+        try {
+
+            const scanner = new Html5Qrcode("reader");
+
+            const barcode = await scanner.scanFile(file, true);
+
+            document.getElementById("imageStatus").textContent =
+                "Barcode detected: " + barcode;
+
+            fetchProduct(barcode);
+
+        }
+
+
+        catch (error) {
+
+            document.getElementById("imageStatus").textContent =
+                "Barcode not detected. Try a clearer or closely cropped image.";
+
+            console.error("Image Scan Error:", error);
+
+        }
+
+    }
+
+
+    // FETCH PRODUCT INFORMATION
+
+    async function fetchProduct(barcode) {
+
+        document.getElementById("mainStatus").textContent =
+            "Searching for product...";
+
+        document.getElementById("productCard").classList.add("hidden");
+
+        document.getElementById("scoreCard").classList.add("hidden");
+
+        document.getElementById("chartCard").classList.add("hidden");
+
+        document.getElementById("summaryCard").classList.add("hidden");
+
+
+        try {
+
+            const response = await fetch("/lookup", {
+
+                method: "POST",
+
+                headers: {
+
+                    "Content-Type": "application/json"
+
+                },
+
+                body: JSON.stringify({
+
+                    barcode: barcode
+
+                })
+
+            });
+
+
+            const data = await response.json();
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.message || data.error || "Product lookup failed."
+                );
+
+            }
+
+
+            if (data.error) {
+
+                throw new Error(data.error);
+
+            }
+
+
+            document.getElementById("mainStatus").textContent = "";
+
+
+            displayProduct(data);
+
+            displayScore(data);
+
+            displayChart(data);
+
+
+            // Generate Gemini AI summary
+
+            generateSummary(data);
+
+        }
+
+
+        catch (error) {
+
+            document.getElementById("mainStatus").textContent =
+                error.message || "Unable to find this product.";
+
+            console.error("Product Lookup Error:", error);
+
+        }
+
+    }
+
+
+    // DISPLAY PRODUCT DETAILS
+
+    function displayProduct(data) {
+
+        document.getElementById("productCard").classList.remove("hidden");
+
+
+        document.getElementById("productName").textContent =
+            displayValue(data.name);
+
+
+        document.getElementById("productBrand").textContent =
+            displayValue(data.brand);
+
+
+        document.getElementById("productBarcode").textContent =
+            displayValue(data.barcode);
+
+
+        document.getElementById("calories").textContent =
+            displayValue(data.calories);
+
+
+        document.getElementById("protein").textContent =
+            displayValue(data.protein);
+
+
+        document.getElementById("carbs").textContent =
+            displayValue(data.carbs);
+
+
+        document.getElementById("fat").textContent =
+            displayValue(data.fat);
+
+
+        document.getElementById("fibre").textContent =
+            displayValue(data.fibre);
+
+
+        document.getElementById("sugar").textContent =
+            displayValue(data.sugar);
+
+
+        document.getElementById("saturatedFat").textContent =
+            displayValue(data.saturated_fat);
+
+
+        document.getElementById("sodium").textContent =
+            displayValue(data.sodium);
+
+    }
+
+
+    // DISPLAY NUTRITION SCORE
+
+    function displayScore(data) {
+
+        document.getElementById("scoreCard").classList.remove("hidden");
+
+
+        const scoreElement = document.getElementById("scoreValue");
+
+        const categoryElement = document.getElementById("scoreCategory");
+
+        const messageElement = document.getElementById("scoreMessage");
+
+
+        if (data.score === null || data.score === undefined) {
+
+            scoreElement.textContent = "N/A";
+
+            categoryElement.textContent = "Insufficient Data";
+
+            messageElement.textContent =
+                "Not enough nutritional information is available to calculate a score.";
+
+            return;
+
+        }
+
+
+        scoreElement.textContent = data.score + "/10";
+
+        scoreElement.className = "score";
+
+
+        if (data.score >= 7) {
+
+            scoreElement.classList.add("healthy");
+
+            categoryElement.textContent = "Healthy";
+
+            messageElement.textContent =
+                "This product has a relatively better nutritional profile.";
+
+        }
+
+
+        else if (data.score >= 5) {
+
+            scoreElement.classList.add("moderate");
+
+            categoryElement.textContent = "Moderate";
+
+            messageElement.textContent =
+                "This product has a moderate nutritional profile.";
+
+        }
+
+
+        else {
+
+            scoreElement.classList.add("unhealthy");
+
+            categoryElement.textContent = "Unhealthy";
+
+            messageElement.textContent =
+                "Consider checking the nutritional disadvantages of this product.";
+
+        }
+
+    }
+
+
+    // DISPLAY MACRONUTRIENT PIE CHART
+
+    function displayChart(data) {
+
+        const protein = Number(data.protein_value) || 0;
+
+        const carbs = Number(data.carbs_value) || 0;
+
+        const fat = Number(data.fat_value) || 0;
+
+
+        document.getElementById("chartCard").classList.remove("hidden");
+
+
+        const ctx = document.getElementById("nutritionChart");
+
+
+        if (nutritionChart) {
+
+            nutritionChart.destroy();
+
+        }
+
+
+        nutritionChart = new Chart(ctx, {
+
+            type: "pie",
+
+            data: {
+
+                labels: [
+
+                    "Carbohydrates",
+
+                    "Protein",
+
+                    "Fat"
+
+                ],
+
+                datasets: [{
+
+                    data: [
+
+                        carbs,
+
+                        protein,
+
+                        fat
+
+                    ],
+
+                    backgroundColor: [
+
+                        "#55a66f",
+
+                        "#e6b84d",
+
+                        "#e47765"
+
+                    ]
+
+                }]
+
+            },
+
+            options: {
+
+                responsive: true,
+
+                plugins: {
+
+                    legend: {
+
+                        position: "bottom"
+
+                    }
+
+                }
+
+            }
+
+        });
+
+    }
+
+
+    // GENERATE GEMINI AI SUMMARY
+
+    async function generateSummary(product) {
+
+        document.getElementById("summaryCard").classList.remove("hidden");
+
+
+        document.getElementById("summaryStatus").textContent =
+            "Generating AI nutritional analysis. This may take some time...";
+
+
+        document.getElementById("summaryContent").innerHTML = "";
+
+
+        try {
+
+            const response = await fetch("/summary", {
+
+                method: "POST",
+
+                headers: {
+
+                    "Content-Type": "application/json"
+
+                },
+
+                body: JSON.stringify(product)
+
+            });
+
+
+            const data = await response.json();
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.message || data.summary || "AI summary generation failed."
+                );
+
+            }
+
+
+            const summary =
+                data.summary || data.analysis || data.message;
+
+
+            if (!summary) {
+
+                throw new Error(
+                    "No summary was returned by the AI service."
+                );
+
+            }
+
+
+            document.getElementById("summaryStatus").textContent = "";
+
+
+            const safeHTML = DOMPurify.sanitize(
+                marked.parse(summary)
+            );
+
+
+            document.getElementById("summaryContent").innerHTML =
+                safeHTML;
+
+        }
+
+
+        catch (error) {
+
+            document.getElementById("summaryStatus").textContent =
+                "AI analysis is temporarily unavailable. Your product information is still available.";
+
+            console.error("Summary Error:", error);
+
+        }
+
+    }
+
+</script>
+
+</body>
+
+</html>
